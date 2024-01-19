@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+
+  mysql:
+    container_name: mysql
+    image: mysql:8.1.0
+    restart: always
+    environment:
+      MYSQL_USER: kcuser
+      MYSQL_DATABASE: keycloak_poc
+      MYSQL_PASSWORD: kcpass
+      MYSQL_ROOT_PASSWORD: root@123
+    ports:
+      - "3307:3306"
+    volumes:
+      - /Users/susithrupasinghe/Local/SLIIT/Research/Volumes/KC-db_mysql:/var/lib/mysql
+    networks:
+      - auth-network
+
+  keycloak-1:
+    image: registry-gitlab.arimaclanka.com/myooredoo-algeria/backend/keycloak-idp-16:stg
+    container_name: keycloak_01
+    ports:
+      - "8085:8080"
+    environment:
+      DB_VENDOR: mysql
+      DB_PORT: 3306
+      DB_DATABASE: keycloak_poc
+      DB_USER: kcuser
+      DB_PASSWORD: kcpass
+      KEYCLOAK_USER: admin
+      DB_ADDR: mysql
+      KEYCLOAK_PASSWORD: admin@123
+      PROXY_ADDRESS_FORWARDING: "true"
+      KEYCLOAK_LOGLEVEL: INFO
+      OTP_ALLOWED: "true"
+      OTP_VALIDATE_URL: http://something.com
+      OTP_REQUEST_URL: http://something.com
+      VALIDATE_MSISDN: http://something.com
+      AUTHORIZED_CLIENT: cleint-name
+      ELIGIBLE_RESPONSE_BODY_CODE: 004,008
+      REST_TEMPLATE_CONNECTION_TIMEOUT: 9000
+      REST_TEMPLATE_READ_TIMEOUT: 9000
+      JGROUPS_DISCOVERY_PROTOCOL: JDBC_PING
+      JGROUPS_DISCOVERY_EXTERNAL_IP: keycloak_01
+
+    depends_on:
+      - mysql
+    command: "-Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled -Dkeycloak.profile.feature.impersonation=enabled"
+    networks:
+      - auth-network
+
+  keycloak-2:
+    image: registry-gitlab.arimaclanka.com/myooredoo-algeria/backend/keycloak-idp-16:stg
+    container_name: keycloak_02
+    ports:
+      - "8086:8080"
+    environment:
+      DB_VENDOR: mysql
+      DB_PORT: 3306
+      DB_DATABASE: keycloak_poc
+      DB_USER: kcuser
+      DB_PASSWORD: kcpass
+      KEYCLOAK_USER: admin
+      DB_ADDR: mysql
+      KEYCLOAK_PASSWORD: admin@123
+      PROXY_ADDRESS_FORWARDING: "true"
+      KEYCLOAK_LOGLEVEL: INFO
+      OTP_ALLOWED: "true"
+      OTP_VALIDATE_URL: http://something.com
+      OTP_REQUEST_URL: http://something.com
+      VALIDATE_MSISDN: http://something.com
+      AUTHORIZED_CLIENT: cleint-name
+      ELIGIBLE_RESPONSE_BODY_CODE: 004,008
+      REST_TEMPLATE_CONNECTION_TIMEOUT: 9000
+      REST_TEMPLATE_READ_TIMEOUT: 9000
+      JGROUPS_DISCOVERY_PROTOCOL: JDBC_PING
+      JGROUPS_DISCOVERY_EXTERNAL_IP: keycloak_02
+
+    depends_on:
+      - mysql
+    command: "-Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled -Dkeycloak.profile.feature.impersonation=enabled"
+    networks:
+      - auth-network
+
+networks:
+  auth-network:
+    name: "auth-net"
+    driver: bridge
